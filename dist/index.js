@@ -35526,11 +35526,11 @@ function resolve(version, supported, tool, os, verbose // If resolution isn't th
 ) {
     const result = version === 'latest'
         ? supported[0]
-        : supported.find(v => v === version) ??
+        : (supported.find(v => v === version) ??
             supported.find(v => v.startsWith(version + '.')) ??
             // Andreas, 2023-05-19, issue #248
             // Append "." so that eg stack "2.1" resolves to "2.1.3" and not "2.11.1".
-            version;
+            version);
     // Andreas 2022-12-29, issue #144: inform about resolution here where we can also output ${tool}.
     if (verbose === true && version !== result)
         core.info(`Resolved ${tool} ${version} to ${result}`);
@@ -35579,6 +35579,7 @@ function getOpts({ ghc, cabal, stack }, os, inputs) {
     const stackSetupGhc = (inputs['stack-setup-ghc'] || '') !== '';
     const stackEnable = (inputs['enable-stack'] || '') !== '';
     const matcherDisable = (inputs['disable-matcher'] || '') !== '';
+    const overrideArch = inputs['override-arch'] || undefined;
     const ghcupReleaseChannel = parseURL('ghcup-release-channel', inputs['ghcup-release-channel'] || '');
     // Andreas, 2023-01-05, issue #29:
     // 'cabal-update' has a default value, so we should get a proper boolean always.
@@ -35627,7 +35628,10 @@ function getOpts({ ghc, cabal, stack }, os, inputs) {
             enable: stackEnable,
             setup: stackSetupGhc
         },
-        general: { matcher: { enable: !matcherDisable } }
+        general: {
+            matcher: { enable: !matcherDisable },
+            arch: overrideArch
+        }
     };
     core.debug(`Options are: ${JSON.stringify(opts)}`);
     return opts;
@@ -35710,10 +35714,11 @@ async function run(inputs) {
     try {
         core.info('Preparing to setup a Haskell environment');
         const os = process.platform;
-        const arch = process.arch;
         const opts = (0, opts_1.getOpts)((0, opts_1.getDefaults)(os), os, inputs);
+        const arch = opts.general.arch || process.arch;
         core.debug(`run: inputs = ${JSON.stringify(inputs)}`);
         core.debug(`run: os     = ${JSON.stringify(os)}`);
+        core.debug(`run: arch   = ${JSON.stringify(arch)}`);
         core.debug(`run: opts   = ${JSON.stringify(opts)}`);
         if (opts.ghcup.releaseChannel) {
             await core.group(`Preparing ghcup environment`, async () => (0, installer_1.addGhcupReleaseChannel)(opts.ghcup.releaseChannel, os, arch));

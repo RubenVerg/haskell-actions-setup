@@ -34,10 +34,11 @@ export default async function run(
   try {
     core.info('Preparing to setup a Haskell environment');
     const os = process.platform as OS;
-    const arch = process.arch as Arch;
     const opts = getOpts(getDefaults(os), os, inputs);
+    const arch = opts.general.arch || (process.arch as Arch);
     core.debug(`run: inputs = ${JSON.stringify(inputs)}`);
     core.debug(`run: os     = ${JSON.stringify(os)}`);
+    core.debug(`run: arch   = ${JSON.stringify(arch)}`);
     core.debug(`run: opts   = ${JSON.stringify(opts)}`);
 
     if (opts.ghcup.releaseChannel) {

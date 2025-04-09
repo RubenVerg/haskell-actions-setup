@@ -28,7 +28,7 @@ export interface Options {
   ghcup: {releaseChannel?: URL};
   cabal: ProgramOpt & {update: boolean};
   stack: ProgramOpt & {setup: boolean};
-  general: {matcher: {enable: boolean}};
+  general: {matcher: {enable: boolean}; arch?: Arch};
 }
 
 type Version = {version: string; supported: string[]};
@@ -98,11 +98,11 @@ function resolve(
   const result =
     version === 'latest'
       ? supported[0]
-      : supported.find(v => v === version) ??
+      : (supported.find(v => v === version) ??
         supported.find(v => v.startsWith(version + '.')) ??
         // Andreas, 2023-05-19, issue #248
         // Append "." so that eg stack "2.1" resolves to "2.1.3" and not "2.11.1".
-        version;
+        version);
   // Andreas 2022-12-29, issue #144: inform about resolution here where we can also output ${tool}.
   if (verbose === true && version !== result)
     core.info(`Resolved ${tool} ${version} to ${result}`);
@@ -158,6 +158,7 @@ export function getOpts(
   const stackSetupGhc = (inputs['stack-setup-ghc'] || '') !== '';
   const stackEnable = (inputs['enable-stack'] || '') !== '';
   const matcherDisable = (inputs['disable-matcher'] || '') !== '';
+  const overrideArch = inputs['override-arch'] || undefined;
   const ghcupReleaseChannel = parseURL(
     'ghcup-release-channel',
     inputs['ghcup-release-channel'] || ''
@@ -231,7 +232,10 @@ export function getOpts(
       enable: stackEnable,
       setup: stackSetupGhc
     },
-    general: {matcher: {enable: !matcherDisable}}
+    general: {
+      matcher: {enable: !matcherDisable},
+      arch: overrideArch as Arch | undefined
+    }
   };
 
   core.debug(`Options are: ${JSON.stringify(opts)}`);

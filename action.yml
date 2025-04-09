@@ -36,6 +36,10 @@ inputs:
   disable-matcher:
     required: false
     description: 'If specified, disables match messages from GHC as GitHub CI annotations.'
+  override-arch:
+    required: false
+    default: ''
+    description: 'If specified, forces the architecture to be used for GHC and Cabal.'
 outputs:
   ghc-version:
     description: 'The resolved version of ghc'

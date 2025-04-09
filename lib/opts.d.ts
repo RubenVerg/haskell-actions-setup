@@ -28,6 +28,7 @@ export interface Options {
         matcher: {
             enable: boolean;
         };
+        arch?: Arch;
     };
 }
 type Version = {
